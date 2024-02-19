@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+    <link rel="stylesheet" href="/resources/style.css" />
+    <script type="module">
+      // Load only global items since we don't need screen elements
+      fetch(
+        "https://www.includecore.com/api/projects/4865/globals/7360-globals",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      )
+        .then((response) => (response.ok ? response.json() : Promise.reject()))
+        .then((data) => {
+          document.getElementById("logo").src = data.logo;
+          document.querySelector("footer").textContent = data.footer;
+        })
+        .catch((error) =>
+          alert("Something went wrong, please try again later.")
+        );
+
+      const productId = new URL(window.location.href).searchParams.get("id");
+      // Load the article
+      fetch(
+        "https://www.includecore.com/api/projects/4865/databases/7361-Products/entries/" +
+          productId,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      )
+        .then((response) => (response.ok ? response.json() : Promise.reject()))
+        .then((data) => {
+          // Set the product details
+          document.getElementById("product_title").textContent = data.title;
+          document.getElementById("item_number").textContent = data.item_number;
+          document.getElementById("content").innerHTML = data.desc;
+          if (data.currency === '€') {
+            document.getElementById("price").textContent = data.price + ' €';
+          } else if (data.currency === '$') {
+            document.getElementById("price").textContent = '$ ' + data.price;
+          }
+          document.getElementById("shipping").textContent = 'Shipping: ' + data.shipping;
+          data.images.forEach((picture, index) => {
+            const pictureElement = document.createElement("img");
+            pictureElement.src = picture;
+            pictureElement.classList.add("slider-picture", "none");
+            pictureElement.setAttribute("data-index", index);
+            const buttonElement = document.createElement("button");
+            buttonElement.classList = "slider-button";
+            buttonElement.addEventListener("click", () => {
+              if (buttonElement.classList.contains("active")) return;
+              document
+                .querySelectorAll(".slider-button")
+                .forEach((button) => button.classList.remove("active"));
+              buttonElement.classList.add("active");
+              document
+                .querySelectorAll(".slider-picture")
+                .forEach((picture) => picture.classList.add("none"));
+              document
+                .querySelector(`.slider-picture[data-index='${index}']`)
+                .classList.remove("none");
+            });
+            document
+              .getElementById("main_pictures")
+              .appendChild(pictureElement);
+            document
+              .getElementById("main_pictures_buttons")
+              .appendChild(buttonElement);
+            if (index === 0) buttonElement.click();
+          });
+        })
+        .catch(
+          (error) =>
+            (document.getElementById("title").textContent = "Product not found")
+        );
+    </script>
+  </head>
+  <body>
+    <div id="products" class="container">
+      <header class="flex align-items-center space-between">
+        <div>
+          <a href="/"><img id="logo" /></a>
+        </div>
+      </header>
+      <a href="javascript:history.go(-1)"><div id="back">&#60; Back</div></a>
+      <hr class="horline"/>
+      <div class="flex space-between">
+        <div class="mr-30">
+          <div id="main_pictures"></div>
+          <div class="text-left" id="main_pictures_buttons"></div>
+        </div>
+        <div>
+          <div id="item_number_container">Item number: <span id="item_number"></span></div>
+          <h1 id="product_title"></h1>
+          <div id="content" class="headline_paragraph"></div>
+          <div id="price"></div>
+          <div id="shipping"></div>
+          <button id="inquire">Inquire about availability</button>
+        </div>
+      </div>
+      <footer></footer>
+    </div>
+  </body>
+</html>
